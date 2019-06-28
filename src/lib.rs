@@ -152,7 +152,7 @@ impl<'a> Handler<'a> {
 
         query_strings.extend(qs.iter().cloned());
 
-        let mut query = String::from_str("http://").unwrap();
+        let mut query = String::from_str("https://").unwrap();
         query.push_str(self.host);
         query.push_str(uri);
         query.push('?');
