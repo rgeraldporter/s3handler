@@ -787,7 +787,7 @@ impl<'a> Handler<'a> {
         Ok(())
     }
 
-    pub fn put(&self, file: &str, dest: &str) -> Result<(), &'static str> {
+    pub fn put(&self, file: &str, dest: &str, add_headers: Option<&Vec<(&str, &str)>>) -> Result<(), &'static str> {
         if file == "" || dest == "" {
             return Err("please specify the file and the destiney");
         }
@@ -797,6 +797,11 @@ impl<'a> Handler<'a> {
             None => return Err("S3 object format error."),
         };
         let mut content: Vec<u8>;
+        let empty_headers = &Vec::new();
+        let add_headers = match &add_headers {
+            Some(add_headers) => add_headers,
+            None => &empty_headers
+        };
 
         let uri = if &caps["object"] == "" || &caps["object"] == "/" {
             let file_name = Path::new(file).file_name().unwrap().to_string_lossy();
@@ -841,7 +846,7 @@ impl<'a> Handler<'a> {
                                 "POST",
                                 &uri,
                                 &vec![("uploads", "")],
-                                &Vec::new(),
+                                &add_headers,
                                 &Vec::new(),
                             )?
                             .0,
@@ -933,7 +938,7 @@ impl<'a> Handler<'a> {
                                     ("uploadId", upload_id.as_str()),
                                     ("partNumber", part.to_string().as_str()),
                                 ],
-                                &Vec::new(),
+                                &add_headers,
                                 &buffer.to_vec(),
                             )?
                             .1
@@ -970,7 +975,7 @@ impl<'a> Handler<'a> {
                                     "POST",
                                     &uri,
                                     &vec![("uploadId", upload_id.as_str())],
-                                    &Vec::new(),
+                                    &add_headers,
                                     &content.into_bytes(),
                                 );
                             }
@@ -991,7 +996,7 @@ impl<'a> Handler<'a> {
                         self.aws_v4_request("PUT", None, &uri, &Vec::new(), &Vec::new(), content);
                     }
                     AuthType::AWS2 => {
-                        self.aws_v2_request("PUT", &uri, &Vec::new(), &Vec::new(), &content);
+                        self.aws_v2_request("PUT", &uri, &Vec::new(), &add_headers, &content);
                     }
                 };
             };
